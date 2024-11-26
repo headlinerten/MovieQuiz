@@ -1,6 +1,32 @@
 import UIKit
 
+// MARK: - Structs
+/// для состояния "Вопрос показан"
+private struct QuizStepViewModel {
+    let image: UIImage
+    let question: String
+    let questionNumber: String
+}
+
+/// для состояния "Результат квиза"
+private struct QuizResultsViewModel {
+    let title: String
+    let text: String
+    let buttonText: String
+}
+
+private struct QuizQuestion {
+    /// строка с названием фильма,
+    /// совпадает с названием картинки афиши фильма в Assets
+    let image: String
+    /// строка с вопросом о рейтинге фильма
+    let text: String
+    /// булевое значение (true, false), правильный ответ на вопрос
+    let correctAnswer: Bool
+}
+
 final class MovieQuizViewController: UIViewController {
+    
     // MARK: - Outlets
     @IBOutlet private var imageView: UIImageView!
     @IBOutlet private var textLabel: UILabel!
@@ -19,39 +45,15 @@ final class MovieQuizViewController: UIViewController {
         QuizQuestion(image: "Tesla", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false),
         QuizQuestion(image: "Vivarium", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: false)
     ]
-    // переменная с индексом текущего вопроса, начальное значение 0 (так как индекс в массиве начинается с 0)
+    /// переменная с индексом текущего вопроса, начальное значение 0 (так как индекс в массиве начинается с 0)
     private var currentQuestionIndex = 0
-    // переменная со счётчиком правильных ответов, начальное значение закономерно 0
+    /// переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
-    // берём текущий вопрос из массива вопросов по индексу текущего вопроса
+    /// берём текущий вопрос из массива вопросов по индексу текущего вопроса
     private var currentQuestion: QuizQuestion {
         return questions[currentQuestionIndex]
     }
     
-    // MARK: - Structs
-    // для состояния "Вопрос показан"
-    private struct QuizStepViewModel {
-        let image: UIImage
-        let question: String
-        let questionNumber: String
-    }
-    
-    // для состояния "Результат квиза"
-    private struct QuizResultsViewModel {
-        let title: String
-        let text: String
-        let buttonText: String
-    }
-    
-    private struct QuizQuestion {
-        // строка с названием фильма,
-        // совпадает с названием картинки афиши фильма в Assets
-        let image: String
-        // строка с вопросом о рейтинге фильма
-        let text: String
-        // булевое значение (true, false), правильный ответ на вопрос
-        let correctAnswer: Bool
-    }
     
     
     // MARK: - Lifecycle
@@ -65,15 +67,15 @@ final class MovieQuizViewController: UIViewController {
     }
     
     // MARK: - Methods
-    // приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
+    /// приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
     
-    // приватный метод для показа результатов раунда квиза
-    // принимает вью модель QuizResultsViewModel и ничего не возвращает
+    /// приватный метод для показа результатов раунда квиза
+    /// принимает вью модель QuizResultsViewModel и ничего не возвращает
     private func show(quiz result: QuizResultsViewModel) {
         let alert = UIAlertController(
             title: result.title,
@@ -94,7 +96,7 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
-    // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
+    /// приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             image: UIImage(named: model.image) ?? UIImage(),
@@ -103,8 +105,8 @@ final class MovieQuizViewController: UIViewController {
         return questionStep
     }
     
-    // приватный метод, который содержит логику перехода в один из сценариев
-    // метод ничего не принимает и ничего не возвращает
+    /// приватный метод, который содержит логику перехода в один из сценариев
+    /// метод ничего не принимает и ничего не возвращает
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questions.count - 1 {
             let text = "Ваш результат: \(correctAnswers)/10" // 1
