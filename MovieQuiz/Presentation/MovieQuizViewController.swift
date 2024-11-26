@@ -72,6 +72,10 @@ final class MovieQuizViewController: UIViewController {
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        
+        // Сбрасываем рамку
+         imageView.layer.borderWidth = 0
+         imageView.layer.borderColor = nil
     }
     
     /// приватный метод для показа результатов раунда квиза
