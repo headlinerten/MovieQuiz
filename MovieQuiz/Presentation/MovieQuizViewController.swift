@@ -34,17 +34,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentQuestionIndex = 0
     /// переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
+    /// добавим свойство типа StatisticServiceProtocol, чтобы наш контроллер мог работать с сервисом
+    private var statisticService: StatisticServiceProtocol?
      
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        statisticService = StatisticService()
         let questionFactory = QuestionFactory()
         questionFactory.setup(delegate: self)
         self.questionFactory = questionFactory
-        
         self.alertPresenter = AlertPresenter(viewController: self)
-        
         questionFactory.requestNextQuestion()
         }
     
@@ -73,25 +74,43 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     /// метод ничего не принимает и ничего не возвращает
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-            let text = "Ваш результат: \(correctAnswers)/10" // 1
-            let viewModel = QuizResultsViewModel( // 2
+            // Сохраняем результат текущего раунда
+            statisticService?.store(correct: correctAnswers, total: questionsAmount)
+
+            // Форматирование даты для "Рекорда"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd.MM.yy HH:mm" // Формат: день.месяц.год часы:минуты
+            let bestGameDate = statisticService?.bestGame.date ?? Date()
+            let formattedDate = dateFormatter.string(from: bestGameDate)
+            
+            // Формируем текст для алерта
+            let message = """
+            Ваш результат: \(correctAnswers)/\(questionsAmount)
+            Количество сыгранных квизов: \(statisticService?.gamesCount ?? 0)
+            Рекорд: \(statisticService?.bestGame.correct ?? 0)/\(statisticService?.bestGame.total ?? 0) (\(formattedDate))
+            Средняя точность: \(String(format: "%.2f", statisticService?.totalAccuracy ?? 0.0))%
+            """
+            
+            // Отображаем алерт
+            let resultViewModel = QuizResultsViewModel(
                 title: "Этот раунд окончен!",
-                text: text,
-                buttonText: "Сыграть ещё раз")
-           
-            // Используем AlertPresenter для отображения
-            alertPresenter?.showQuizResult(viewModel) { [weak self] in
-                guard let self = self else { return }
-                
-                self.currentQuestionIndex = 0
-                self.correctAnswers = 0
-                self.questionFactory.requestNextQuestion()
+                text: message,
+                buttonText: "Сыграть ещё раз"
+            )
+            
+            alertPresenter?.showQuizResult(
+                viewModel: resultViewModel,
+                message: message
+            ) { [weak self] in
+                self?.currentQuestionIndex = 0
+                self?.correctAnswers = 0
+                self?.questionFactory.requestNextQuestion()
             }
         } else {
             currentQuestionIndex += 1
-            self.questionFactory.requestNextQuestion()
-            }
+            questionFactory.requestNextQuestion()
         }
+    }
         
         private func showAnswerResult(isCorrect: Bool) {
             if isCorrect {

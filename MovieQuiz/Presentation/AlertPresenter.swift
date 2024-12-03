@@ -1,10 +1,3 @@
-//
-//  AlertPresenter.swift
-//  MovieQuiz
-//
-//  Created by Tenzin Sangadzhiev on 12/1/24.
-//
-
 import UIKit
 
 /// Класс, отвечающий за отображение алертов.
@@ -16,18 +9,16 @@ final class AlertPresenter {
     }
 
     /// Показывает алерт на основе данных QuizResultsViewModel
-    func showQuizResult(_ result: QuizResultsViewModel, completion: @escaping () -> Void) {
+    func showQuizResult(viewModel: QuizResultsViewModel, message: String, completion: @escaping () -> Void) {
         let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
+            title: viewModel.title,
+            message: message,
             preferredStyle: .alert
         )
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
+        let action = UIAlertAction(title: viewModel.buttonText, style: .default) { _ in
             completion()
         }
-        
         alert.addAction(action)
-        viewController?.present(alert, animated: true, completion: nil)
+        viewController?.present(alert, animated: true)
     }
 }
