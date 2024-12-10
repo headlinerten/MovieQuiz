@@ -20,12 +20,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private var imageView: UIImageView!
     @IBOutlet private var textLabel: UILabel!
     @IBOutlet private var counterLabel: UILabel!
+    @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
     // MARK: - Properties
     /// общее количество вопросов для квиза
     private let questionsAmount: Int = 10
     /// фабрика вопросов. Контроллер будет обращаться за вопросами к ней
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol?
     /// вопрос, который видит пользователь
     private var currentQuestion: QuizQuestion?
     /// объявление свойства alertPresenter в контроллере
@@ -40,14 +41,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+       
+       imageView.layer.cornerRadius = 20
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         statisticService = StatisticService()
-        let questionFactory = QuestionFactory()
-        questionFactory.setup(delegate: self)
-        self.questionFactory = questionFactory
-        self.alertPresenter = AlertPresenter(viewController: self)
-        questionFactory.requestNextQuestion()
-        }
+        alertPresenter = AlertPresenter(viewController: self)
+        showLoadingIndicator()
+        questionFactory?.loadData()
+    }
     
     // MARK: - Methods
     /// приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
@@ -61,13 +62,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderColor = nil
     }
     
-    /// приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
+    /// приватный метод конвертации, который принимает вопрос и возвращает вью модель для главного экрана
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+        return QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
     }
     
     /// приватный метод, который содержит логику перехода в один из сценариев
@@ -104,15 +104,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             ) { [weak self] in
                 self?.currentQuestionIndex = 0
                 self?.correctAnswers = 0
-                self?.questionFactory.requestNextQuestion()
+                self?.questionFactory?.requestNextQuestion()
             }
         } else {
             currentQuestionIndex += 1
-            questionFactory.requestNextQuestion()
+            questionFactory?.requestNextQuestion()
         }
     }
         
-        private func showAnswerResult(isCorrect: Bool) {
+    private func showAnswerResult(isCorrect: Bool) {
             if isCorrect {
                 correctAnswers += 1
             }
@@ -126,7 +126,44 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 self.showNextQuestionOrResults()
             }
         }
+
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false // говорим, что индикатор загрузки не скрыт
+        activityIndicator.startAnimating() // включаем анимацию
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
         
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            self.questionFactory?.requestNextQuestion()
+        }
+        
+        alertPresenter?.show(in: self, model: model)
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true // скрываем индикатор загрузки
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+    }
+    
+    
         // MARK: - Actions
         @IBAction private func yesButtonClicked(_ sender: UIButton) {
             guard let currentQuestion = currentQuestion else {
@@ -136,6 +173,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             
             showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
         }
+    
         @IBAction private func noButtonClicked(_ sender: UIButton) {
             guard let currentQuestion = currentQuestion else {
                 return
