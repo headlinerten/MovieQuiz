@@ -118,10 +118,15 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="MzT-2Y-5gZ">
+                                <rect key="frame" x="197" y="438" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
+                            <constraint firstItem="MzT-2Y-5gZ" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Lgb-bX-iSJ"/>
+                            <constraint firstItem="MzT-2Y-5gZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="WTm-dq-tOe"/>
                             <constraint firstItem="Lii-b6-c8Q" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="kaK-3g-q9d"/>
                             <constraint firstItem="Lii-b6-c8Q" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="o3k-nX-uwh"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Lii-b6-c8Q" secondAttribute="trailing" constant="20" id="rcx-X2-mMf"/>
@@ -129,6 +134,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="MzT-2Y-5gZ" id="pzO-Qb-l6W"/>
                         <outlet property="counterLabel" destination="D6b-pu-tUa" id="e2s-MK-TDO"/>
                         <outlet property="imageView" destination="85d-gW-2FO" id="f4M-c5-lT4"/>
                         <outlet property="textLabel" destination="KlF-Zh-ama" id="o2A-i3-mqS"/>
