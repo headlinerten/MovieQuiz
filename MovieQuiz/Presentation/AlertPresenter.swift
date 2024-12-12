@@ -1,6 +1,5 @@
 import UIKit
 
-/// Класс, отвечающий за отображение алертов.
 final class AlertPresenter {
     private weak var viewController: UIViewController?
 
@@ -19,6 +18,11 @@ final class AlertPresenter {
             completion()
         }
         alert.addAction(action)
+
+        // Задаем идентификатор для кнопки
+        alert.view.accessibilityIdentifier = "Game results"
+        action.setValue("RetryButton", forKey: "accessibilityIdentifier")
+        
         viewController?.present(alert, animated: true)
     }
     
